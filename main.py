@@ -13,14 +13,15 @@ def int g()
 {
     return 15;
 }
-int x;
 int y;
-x = 0;
-if(x) y = 10;
-else
+int x;
+x = 3;
+do
 {
-    y = 50;
-}    
+    y = y + 3;
+    if(x){}
+    x = x - 1;
+} while(x);
 """
 
 

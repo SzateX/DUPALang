@@ -3,8 +3,8 @@ from typing import Any
 
 from dupa_collections import CallStack
 from enums import VariableTypes, ARType
-from errors import ReturnedValue
-from nodes import Compound, Declaration, DupaCall
+from errors import ReturnedValue, ContinueIteration
+from nodes import Compound, Declaration, DupaCall, IterFor, DoWhile
 from dupa_parser import Parser
 from containers import ActivationRecord
 
@@ -114,6 +114,43 @@ class Interpreter(ast.NodeVisitor):
             return self.visit(node.body)
         elif node.orelse is not None:
             return self.visit(node.orelse)
+
+    def visit_IterFor(self, node: IterFor) -> Any:
+        self.visit(node.expr1)
+        while self.visit(node.expr2):
+            try:
+                self.visit(node.body)
+            except StopIteration:
+                break
+            except ContinueIteration:
+                pass
+            self.visit(node.expr3)
+
+    def visit_While(self, node: ast.While) -> Any:
+        while self.visit(node.test):
+            try:
+                self.visit(node.body)
+            except StopIteration:
+                break
+            except ContinueIteration:
+                continue
+
+    def visit_DoWhile(self, node: DoWhile) -> Any:
+        while True:
+            try:
+                self.visit(node.body)
+            except StopIteration:
+                break
+            except ContinueIteration:
+                pass
+            if not self.visit(node.test):
+                break
+
+    def visit_Continue(self, node: ast.Continue) -> Any:
+        raise ContinueIteration()
+
+    def visit_Break(self, node: ast.Break) -> Any:
+        raise StopIteration()
 
     def interpret(self, tree=None):
         if tree is None:

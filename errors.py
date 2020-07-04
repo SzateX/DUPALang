@@ -6,6 +6,10 @@ class ReturnedValue(Exception):
     pass
 
 
+class ContinueIteration(Exception):
+    pass
+
+
 class PreInterpretError(Exception):
     def __init__(self, error_code: ErrorCode = None, token: Token = None,
                  message=None):

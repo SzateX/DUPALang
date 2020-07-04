@@ -3,7 +3,7 @@ from typing import Union
 
 from enums import ErrorCode, TokenType, VariableTypes
 from errors import ParserError
-from nodes import Compound, Declaration, Param, DupaCall
+from nodes import Compound, Declaration, Param, DupaCall, IterFor, DoWhile
 from tokens import Token
 
 
@@ -65,7 +65,12 @@ class Parser(object):
         """statement: assigment_statement
                     | declaration_statement
                     | empty
-                    | proccall_statement"""
+                    | proccall_statement
+                    | return_statement
+                    | break_statement
+                    | continue_statement
+                    | conditional_statement
+                    | loop_statement"""
         if self.current_token.token_type == TokenType.ID and self.lexer.current_char == '(':
             return self.proccall_statement()
         if self.current_token.token_type == TokenType.ID:
@@ -77,6 +82,12 @@ class Parser(object):
             return self.return_statement()
         if self.current_token.token_type == TokenType.IF:
             return self.conditional_statement()
+        if self.current_token.token_type in (TokenType.FOR, TokenType.WHILE, TokenType.DO):
+            return self.loop_statement()
+        if self.current_token.token_type == TokenType.BREAK:
+            return self.break_statement()
+        if self.current_token.token_type == TokenType.CONTINUE:
+            return self.continue_statement()
         return self.empty()
 
     def function_definition(self):
@@ -278,6 +289,70 @@ class Parser(object):
                 else_body = self.statement()
                 self.eat(TokenType.SEMI)
         return ast.If(test=expr, body=body, orelse=else_body)
+
+    def loop_statement(self):
+        """loop_statement: for_statement | while_statement | do_while_statement"""
+        if self.current_token.token_type == TokenType.FOR:
+            return self.for_statement()
+        elif self.current_token.token_type == TokenType.WHILE:
+            return self.while_statement()
+        elif self.current_token.token_type == TokenType.DO:
+            return self.do_while_statement()
+
+    def for_statement(self):
+        """for_statement: FOR LPAR statement SEMI EXPR SEMI statement RPAR (statement SEMI | compound_statement)"""
+        self.eat(TokenType.FOR)
+        self.eat(TokenType.LPAR)
+        expr1 = self.statement()
+        self.eat(TokenType.SEMI)
+        expr2 = self.expr()
+        self.eat(TokenType.SEMI)
+        expr3 = self.statement()
+        self.eat(TokenType.RPAR)
+        if self.current_token.token_type == TokenType.LBR:
+            body = self.compound_statement()
+        else:
+            body = self.statement()
+            self.eat(TokenType.SEMI)
+        return IterFor(expr1, expr2, expr3, body)
+
+    def while_statement(self):
+        """while_statement: WHILE LPAR EXPR RPAR (statement SEMI | compound_statement)"""
+        self.eat(TokenType.WHILE)
+        self.eat(TokenType.LPAR)
+        expr = self.expr()
+        self.eat(TokenType.RPAR)
+        if self.current_token.token_type == TokenType.LBR:
+            body = self.compound_statement()
+        else:
+            body = self.statement()
+            self.eat(TokenType.SEMI)
+        return ast.While(test=expr, body=body)
+
+    def do_while_statement(self):
+        """DO (statement SEMI | compound_statement) WHILE LPAR expr RPAR SEMI"""
+        self.eat(TokenType.DO)
+        if self.current_token.token_type == TokenType.LBR:
+            body = self.compound_statement()
+        else:
+            body = self.statement()
+            self.eat(TokenType.SEMI)
+        self.eat(TokenType.WHILE)
+        self.eat(TokenType.LPAR)
+        expr = self.expr()
+        self.eat(TokenType.RPAR)
+        self.eat(TokenType.SEMI)
+        return DoWhile(expr, body)
+
+    def continue_statement(self):
+        """continue_statement: CONTINUE"""
+        self.eat(TokenType.CONTINUE)
+        return ast.Continue()
+
+    def break_statement(self):
+        """break_statement: BREAK"""
+        self.eat(TokenType.BREAK)
+        return ast.Break()
 
     def parse(self):
         node = self.program()

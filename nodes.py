@@ -47,3 +47,19 @@ class DupaCall(ast.expr):
         self.args = args
         self.keywords = keywords
         self.proc_symbol = proc_symbol
+
+
+class IterFor(ast.stmt):
+    def __init__(self, expr1, expr2, expr3, body):
+        super(IterFor, self).__init__()
+        self.expr1 = expr1
+        self.expr2 = expr2
+        self.expr3 = expr3
+        self.body = body
+
+
+class DoWhile(ast.stmt):
+    def __init__(self, test, body):
+        super(DoWhile, self).__init__()
+        self.test = test
+        self.body = body

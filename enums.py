@@ -26,6 +26,11 @@ class TokenType(Enum):
     RETURN = 'return'
     IF = 'if'
     ELSE = 'else'
+    WHILE = 'while'
+    FOR = 'for'
+    DO = 'do'
+    BREAK = 'break'
+    CONTINUE = 'continue'
     DEF = 'def'
     # OTHER
     INTEGER = 'INTEGER'
