@@ -109,6 +109,12 @@ class Interpreter(ast.NodeVisitor):
         self.call_stack.peek().return_value = self.visit(node.value)
         raise ReturnedValue()
 
+    def visit_If(self, node: ast.If) -> Any:
+        if self.visit(node.test):
+            return self.visit(node.body)
+        elif node.orelse is not None:
+            return self.visit(node.orelse)
+
     def interpret(self, tree=None):
         if tree is None:
             tree = self.parser.parse()

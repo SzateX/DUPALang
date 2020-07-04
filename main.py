@@ -7,10 +7,20 @@ from pprint import pprint
 text = """def int f()
 {
     return 2 + 2 * 2;
-    return 0;
+}
+
+def int g()
+{
+    return 15;
 }
 int x;
-x = f();
+int y;
+x = 0;
+if(x) y = 10;
+else
+{
+    y = 50;
+}    
 """
 
 

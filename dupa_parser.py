@@ -75,6 +75,8 @@ class Parser(object):
             return self.declaration_statement()
         if self.current_token.token_type == TokenType.RETURN:
             return self.return_statement()
+        if self.current_token.token_type == TokenType.IF:
+            return self.conditional_statement()
         return self.empty()
 
     def function_definition(self):
@@ -255,6 +257,27 @@ class Parser(object):
         """return_statement: RETURN expr"""
         self.eat(TokenType.RETURN)
         return ast.Return(value=self.expr())
+
+    def conditional_statement(self):
+        """conditional_statement: if LPAR expr RPAR (statement SEMI | compound_statement) (else (statement SEMI | compund_statement))?"""
+        self.eat(TokenType.IF)
+        self.eat(TokenType.LPAR)
+        expr = self.expr()
+        self.eat(TokenType.RPAR)
+        if self.current_token.token_type == TokenType.LBR:
+            body = self.compound_statement()
+        else:
+            body = self.statement()
+            self.eat(TokenType.SEMI)
+        else_body = None
+        if self.current_token.token_type == TokenType.ELSE:
+            self.eat(TokenType.ELSE)
+            if self.current_token.token_type == TokenType.LBR:
+                else_body = self.compound_statement()
+            else:
+                else_body = self.statement()
+                self.eat(TokenType.SEMI)
+        return ast.If(test=expr, body=body, orelse=else_body)
 
     def parse(self):
         node = self.program()
