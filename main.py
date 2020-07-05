@@ -29,6 +29,8 @@ def main():
     while True:
         lexer = Lexer(text)
         parser = Parser(lexer)
+        print("GRAMMAR:")
+        print(parser.get_grammar() + "\n" + "\n")
         tree = parser.parse()
         analyzer = SemanticAnalyzer()
         analyzer.visit(tree)
